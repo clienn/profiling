@@ -34,7 +34,7 @@ class PageController extends Controller
     }
 
     public function login() {
-        $ldate = date('F d, Y - l');
+        $ldate = date('F d, Y l');
         return view('index', ['ldate' => $ldate]);
     }
 
@@ -147,7 +147,8 @@ class PageController extends Controller
 
     public function profiling() {
         $classifications = Classification::select('id', 'name')
-            ->where('id', '!=', 1)->get()->toArray();
+            ->get()->toArray();
+            //->where('id', '!=', 1)->get()->toArray();
         $branches = Branch::select('id', 'name')->get()->toArray();
 
         $member = Member::latest('id')->first();

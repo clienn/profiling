@@ -104,6 +104,12 @@
         <div class="col-md-5 border1 text-left login-col top-buffer">
             <h1 class="font-light-1">Welcome Back!</h1>
             <p>Please use QR Code ID scanner or type member code<br /> and password.</p>
+            @isset ($message)
+            <div class="alert alert-danger text-center">
+                <a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>
+                <p>{{ $message }}</p>
+            </div>
+            @endisset
             <div class="login-form">
                 <form action="/authenticate/login" method="POST" autocomplete="off">
                     {{ csrf_field() }}

@@ -12,7 +12,9 @@
                     <span class="text-white font-light">December 2, 2019</span>
                     <span class="text-white font-light ml-2 mr-2"> | </span>
                     <span class="center-icon-nt-1">@include('svg.person-icon-gray')</span>
-                    <span class="text-white font-light ml-2 font-weight-bold">John Doe</span>
+                    <a href="/logout" class="nostyle">
+                        <span class="text-white font-light ml-2 font-weight-bold">Logout</span>
+                    </a>
                 </div>
             </div>
         </div>

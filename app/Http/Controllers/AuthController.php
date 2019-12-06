@@ -16,9 +16,19 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
+        $ldate = date('F d, Y l');
+
         if (!auth()->attempt($login_data)) {
-            return view('index', ['message' => 'Invalid credentials']);
+            return view('index', ['message' => 'Invalid credentials. You typed in a wrong username/password.', 'ldate' => $ldate]);
         }
+
+        $user = auth()->user();
+        
+        if ($user->classification_id == 3) {
+            auth()->logout();
+            return view('index', ['message' => 'Members have no login privileges. Must login as admin or staff account.', 'ldate' => $ldate]);
+        }
+
 
         $member = new Member;
         $accessToken = $member->createToken('authToken')->accessToken;
