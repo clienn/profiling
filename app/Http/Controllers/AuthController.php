@@ -61,6 +61,7 @@ class AuthController extends Controller
             'address' => 'required',
             'birthdate' => 'required',
             'contact' => 'required',
+            'status' => 'required',
             'classification_id' => 'required',
             'username' => 'required',
             'password' => 'required|confirmed',
@@ -77,7 +78,7 @@ class AuthController extends Controller
         }
 
         $member = Member::create($validated_data);
-        $accessToken = $member->createToken('authToken');
+        // $accessToken = $member->createToken('authToken');
   
         return redirect('profiling');
     }

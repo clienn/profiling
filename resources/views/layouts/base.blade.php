@@ -31,6 +31,11 @@
                 src: url('{{asset('css/fonts/WorkSans-Regular.ttf')}}')  format('truetype'); /* IE9 Compat Modes */
             }
 
+            @font-face {
+                font-family: 'AbelRegular';
+                src: url('{{asset('css/fonts/Abel-Regular.ttf')}}')  format('truetype'); /* IE9 Compat Modes */
+            }
+            
             html, body {
                 padding:0;
                 margin:0;
@@ -189,6 +194,17 @@
                 display:none !important;
             }
 
+                
+            .btn-curve {
+                border-radius: 1rem !important;
+            }
+
+            .btn-curve:hover {
+                background:#4771E7 !important;
+                color:#fff !important;
+                font-weight:bold;
+            }
+
         </style>
 	</head>
 	
@@ -213,6 +229,7 @@
 
 		<!-- Bootstrap core JavaScript-->
         <script src="{{asset('js/lib/jquery/jquery.min.js')}}"></script>
+        <script src="{{asset('js/lib/jquery-ui-1.12.1/jquery-ui.js')}}"></script>
         
 		<script src="{{asset('css/lib/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
 		
@@ -226,6 +243,8 @@
 
         <!-- <script src="js/app.js"></script> -->
         <script type="text/javascript">
+            var scanCallback = null;
+
             function apiCall(url, method, data, callback) {
                 $.ajax({
                     type: method,
@@ -243,9 +262,9 @@
                         callback(data);
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
-                        alert(xhr + ' == ' + xhr.status);
-                        console.log($('meta[name="csrf-token"]').attr('content'));
-                        console.log(xhr);
+                        alert("Transaction Failed. Please try again.");
+                        //console.log($('meta[name="csrf-token"]').attr('content'));
+                        //console.log(xhr);
                     }
                 });
             }
@@ -256,6 +275,9 @@
                     scanner.stop();
                     $('#qrModal').modal('hide');
                     el.val(content);
+                    if (scanCallback) {
+                        scanCallback(content);
+                    }
                 });
                     Instascan.Camera.getCameras().then(function (cameras) {
                     if (cameras.length > 0) {
@@ -268,6 +290,30 @@
                 });
             }
 
+            function getDataUri(url, callback) {
+                var image = new Image();
+
+                image.onload = function () {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = this.naturalWidth; // or 'width' if you want a special/scaled size
+                    canvas.height = this.naturalHeight; // or 'height' if you want a special/scaled size
+
+                    canvas.getContext('2d').drawImage(this, 0, 0);
+
+                    // Get raw image data
+                    //callback(canvas.toDataURL('image/png').replace(/^data:image\/(png|jpg);base64,/, ''));
+
+                    // ... or get as Data URI
+                    callback(canvas.toDataURL('image/png'));
+                };
+
+                image.onerror = function () {
+                    callback('');
+                }
+                
+                image.src = url;
+            }
+
             $(window).keydown(function(event){
                 if(event.keyCode == 13) {
                     event.preventDefault();
@@ -277,7 +323,7 @@
 
             $(document).ready(function() {
                 $('#qrModal').on('show.bs.modal', function () {
-                    qrScan($('input[name="username"]'));
+                    qrScan($('input[name="username"], input[name="search"]'));
                 });
             });
         </script>

@@ -156,7 +156,12 @@ class MemberController extends Controller
      */
     public function show($id)
     {
-        $member = Member::findOrFail($id);
+        if (is_numeric($id)) {
+            $member = Member::findOrFail($id);
+        } else {
+            $member = Member::where('username', '=', $id)->first();
+        }
+        
         return new MemberResource($member);
     }
 

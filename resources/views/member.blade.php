@@ -74,6 +74,10 @@
                 location.href = '?page=1&records=10&search=' + $(this).val();
             }
         });
+
+        $('#qrModal').on('hidden.bs.modal', function () {
+            location.href = '?page=1&records=10&search=' + $('#search').val();
+        });
     });
 </script>
 @endsection
@@ -81,13 +85,13 @@
 @section('content-2')
 <div class="row form-group align-items-center p-2">
     <div class="col-md-10 my-1">
-        <input id="search" type="text" class="form-control" name="username" 
+        <input id="search" autocomplete="off" type="text" class="form-control" name="username" 
             placeholder="Enter search string or member QR code" />
         
     </div>
     <div class="col-md-2 my-1">
         <!-- <button type="submit" class="btn btn-primary mr-2 btn-rounded-4"> -->
-        <button id="qr-scanner" type="button" class="btn btn-primary mr-2 btn-rounded-4" data-toggle="modal" data-target="#qrModal">
+        <button id="qr-scanner" type="button" class="btn btn-primary border-0 mr-2 btn-rounded-4" data-toggle="modal" data-target="#qrModal">
             <i class="fa icon-qr-1"></i>Scan QR Code
         </button>
     </div>

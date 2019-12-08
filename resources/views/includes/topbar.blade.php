@@ -9,7 +9,9 @@
                 </div>
 
                 <div class="col-md-3 align-self-center text-right font-light header-8">
-                    <span class="text-white font-light">December 2, 2019</span>
+                    <span class="text-white font-light">
+                        {{ Auth::user()->firstname }} {{ Auth::user()->lastname }}
+                    </span>
                     <span class="text-white font-light ml-2 mr-2"> | </span>
                     <span class="center-icon-nt-1">@include('svg.person-icon-gray')</span>
                     <a href="/logout" class="nostyle">

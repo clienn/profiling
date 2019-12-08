@@ -75,6 +75,7 @@ class PageController extends Controller
                 ->orWhere('lastname', 'like', '%' . $search . '%')
                 ->orWhere('middlename', 'like', '%' . $search . '%')
                 ->orWhere('address', 'like', '%' . $search . '%')
+                ->orWhere('username', '=', $search)
                 ->paginate($records);
         }
 

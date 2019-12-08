@@ -32,10 +32,6 @@
         font-size:12px !important;
     }
 
-    .btn-curve {
-        border-radius: 1rem !important;
-    }
-
     .form-control-curve {
         -webkit-border-radius: 2em;
             -moz-border-radius: 2em;
@@ -70,7 +66,7 @@
                 @endif
 
                 <div class="login-form">
-                    <form action="{{ env('API_URL', '127.0.0.1:8000') }}/api/branch" method="POST">
+                    <form action="{{ env('API_URL', '127.0.0.1:8000') }}/api/branch" method="POST" autocomplete="off">
                         {{ csrf_field() }}
                         <input type="hidden" name="id" />
                         <div class="row form-group align-items-center">
@@ -91,7 +87,7 @@
                                 <input type="text" class="form-control input-curve" name="address" placeholder="Address">
                             </div>
                             <div class="col-md-3 my-1">
-                                <input type="text" class="form-control input-curve" name="contact" placeholder="Contact">
+                                <input type="number" class="form-control input-curve" name="contact" placeholder="Contact">
                             </div>
                         </div>
                         <div class="row form-group align-items-center">
@@ -266,8 +262,8 @@
         <h1 class="header-1 font-light fc-1">
             <a href="#" class="nostyle" name="branch-list">Branch List</a>
         </h1>
-        <input id="search" type="text" class="form-control header-8 mt-4" name="search" 
-            placeholder="Enter branch ID or branch name" />
+        <input id="search" autocomplete="off" type="text" class="form-control header-8 mt-4" name="search" 
+            placeholder="Enter branch name" />
     </div>
 </div>
 @if(count($data) > 0)

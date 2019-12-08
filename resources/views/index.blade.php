@@ -51,7 +51,6 @@
         background:#DFDFDF;
         color:#4771e7;
     }
-
     
 
     .font-color-1 {
@@ -84,7 +83,6 @@
     .login-col{
         padding: 5em 10em 5em 0em;
     }
-    
 </style>
 <!--Grid row-->
 <div id="login-wrapper" class="col-md-12 text-center text-white">
@@ -92,8 +90,10 @@
         <div class="col-md-2 p-4 ml-3">
             <span class="header-4">Members Profiling</span>
         </div>
-        <div class="col-md-2 p-4 mr-3">
-            <span class="header-8">{{ $ldate }}</span>
+        <div class="col-md-3 p-4 mr-3">
+            @include('svg.sun-icon')
+            <span class="header-8">{{ date('H:i A') }}</span>
+            <span class="header-8"> | {{ $ldate }}</span>
         </div>
     </div>
 
@@ -126,7 +126,7 @@
                     </div>
                     <div class="row form-group align-items-center top-buffer-2">
                         <div class="col-md-12 btn-toolbar btn-lg">
-                            <button id="qr-scanner" type="button" class="btn btn-primary mr-2 btn-rounded-2" data-toggle="modal" data-target="#qrModal">
+                            <button id="qr-scanner" type="button" class="btn btn-primary border-0 mr-2 btn-rounded-2" data-toggle="modal" data-target="#qrModal">
                                 <i class="fa icon-qr"></i>Scan QR Code
                             </button>
                             <button type="submit" class="btn btn-primary btn-rounded-3">Login</button>
