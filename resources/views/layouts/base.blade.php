@@ -205,6 +205,59 @@
                 font-weight:bold;
             }
 
+            
+            .card-id {
+                width:400px;
+                height:300px;
+            }
+            .modal-dialog{
+                position: relative;
+                display: table; /* This is important */ 
+                overflow-y: auto;    
+                overflow-x: auto;
+                width: auto;  
+            }
+            .flip-card {
+                background-color: transparent;
+                width: 400px;
+                height: 300px;
+                perspective: 1000px;
+            }
+
+            .flip-card-inner {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                text-align: center;
+                transition: transform 0.6s;
+                transform-style: preserve-3d;
+                box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            }
+
+            /* .flip-card:hover .flip-card-inner {
+                transform: rotateY(180deg);
+            } */
+
+            .flip-card-front, .flip-card-back {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                backface-visibility: hidden;
+            }
+
+            .flip-card-front {
+                color: black;
+                padding:0;
+                margin:0;
+            }
+
+            .flip-card-back {
+                color: white;
+                transform: rotateY(180deg);
+                padding:0;
+                margin:0;
+            }
+
         </style>
 	</head>
 	
@@ -244,7 +297,11 @@
         <!-- <script src="js/app.js"></script> -->
         <script type="text/javascript">
             var scanCallback = null;
-
+            var g_fontAbel = "@font-face {";
+                g_fontAbel += "font-family: 'AbelRegular';";
+                g_fontAbel += "src: url('{{asset('css/fonts/Abel-Regular.ttf')}}')  format('truetype');";
+                g_fontAbel += "}";
+            
             function apiCall(url, method, data, callback) {
                 $.ajax({
                     type: method,
@@ -253,7 +310,7 @@
                     crossDomain: true,
                     headers: {
                         'Accept': 'application/json',
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json, charset=utf-8',
                         'Authorization': 'Bearer {{ Session::get('access_token') }}',
                         'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content'),
                     },

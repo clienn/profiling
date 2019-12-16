@@ -47,7 +47,15 @@
     
     $(document).ready(function() {
         $('#qrModal').on('hidden.bs.modal', function () {
-            updateScan();
+            if ($('#search').val() != '') {
+                updateScan();
+            }
+        });
+
+        $('#search').keyup(function(e) {
+            if (e.keyCode == 13) {
+                updateScan();
+            }
         });
     });
 </script>

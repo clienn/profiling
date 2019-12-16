@@ -98,6 +98,8 @@
     .page-nav:hover p {
         color: #ffffff;
     }
+
+    
 </style>
 
 @include('includes.topbar')

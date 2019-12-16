@@ -1,56 +1,4 @@
 <style>
-    .card-id {
-        width:400px;
-        height:300px;
-    }
-    .modal-dialog{
-        position: relative;
-        display: table; /* This is important */ 
-        overflow-y: auto;    
-        overflow-x: auto;
-        width: auto;  
-    }
-    .flip-card {
-        background-color: transparent;
-        width: 400px;
-        height: 300px;
-        perspective: 1000px;
-    }
-
-    .flip-card-inner {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        text-align: center;
-        transition: transform 0.6s;
-        transform-style: preserve-3d;
-        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
-    }
-
-    /* .flip-card:hover .flip-card-inner {
-        transform: rotateY(180deg);
-    } */
-
-    .flip-card-front, .flip-card-back {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        backface-visibility: hidden;
-    }
-
-    .flip-card-front {
-        color: black;
-        padding:0;
-        margin:0;
-    }
-
-    .flip-card-back {
-        color: white;
-        transform: rotateY(180deg);
-        padding:0;
-        margin:0;
-    }
-
     body {
         overflow-y:hidden !important;
     }
@@ -95,7 +43,21 @@
                         <span>Classification:</span>
                     </div>
                     <div class="col-md-7 text-left">
-                        <span class="font-weight-bold">Member</span>
+                        @if($data->classification_id == 1)
+                            <span class="font-weight-bold">Leader</span>
+                        @elseif($data->classification_id == 2)
+                            <span class="font-weight-bold">Staff</span>
+                        @else
+                            <span class="font-weight-bold">Member</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="row mt-4 pt-1">
+                    <div class="col-md-5 text-left fc-1">
+                        <span>Branch:</span>
+                    </div>
+                    <div class="col-md-7 text-left">
+                        <span class="font-weight-bold">{{ $branch_name }}</span>
                     </div>
                 </div>
                 <div class="row mt-3">
@@ -122,20 +84,20 @@
                         <span class="font-weight-bold">{{ $data->middlename }}</span>
                     </div>
                 </div>
-                <div class="row mt-3">
+                <!-- <div class="row mt-3">
                     <div class="col-md-5 text-left fc-1">
                         <span>Age:</span>
                     </div>
                     <div class="col-md-7 text-left">
                         <span class="font-weight-bold">{{ $data->age }}</span>
                     </div>
-                </div>
+                </div> -->
                 <div class="row mt-3">
                     <div class="col-md-5 text-left fc-1">
                         <span>Status:</span>
                     </div>
                     <div class="col-md-7 text-left">
-                        <span class="font-weight-bold">Single</span>
+                        <span class="font-weight-bold">{{ $data->status }}</span>
                     </div>
                 </div>
                 <div class="row mt-3">
@@ -288,9 +250,10 @@
 
         var divToPrint=document.getElementById(svgeq ? 'card-back' : 'card-front');
         // var style = '<style>@media print and (width: 8.56cm) and (height: 5.4cm) { @page {margin: 0; } }</style>';
-        var style = '<style>'
-        style += '@media print{@page { size: 3.37in 2.127in;margin:0;} .card-id{height:295px;margin-left:-278px;margin-top:-5px;}';
-        style += 'header, footer, aside, nav, form, iframe, .menu, .hero, .adslot { display: none; }';
+        var style = '<style>' + g_fontAbel;
+        
+        style += '@media print{@page { size: 3.37in 2.127in;margin:0;} .card-id{height:206px;width:328px;margin-left:-2px;} html, body {height:100%; margin: 0 !important; padding: 0 !important;overflow: hidden;}';
+        style += 'header, footer, aside, nav, form, iframe, .menu, .hero, .adslot { display: none; }}';
         style += '</style>';
         var newWin=window.open('','Print-Window');
 
@@ -328,26 +291,35 @@
     }
 
     function fillFrontCard() {
+        let svg = $('#member-card-front')[0];
+        svg.style.fontFamily='AbelRegular';
+
         let classification = "{{ $data->classification_id }}";
-        let color = "rgb(255, 255, 255)";
+        // let color = "rgb(255, 255, 255)";
         
-        if (classification == 1) {
-            color = "rgb(0, 0, 0)";
-        }
+        // if (classification == 1) {
+        //     color = "rgb(0, 0, 0)";
+        // }
+        let colors = ['#333333', '#CCCCCC', '#CCCCCC'];
+        let color = colors[classification - 1];
+        
         let name = document.createElementNS("http://www.w3.org/2000/svg", "text");
         name.setAttribute("font-family", 'AbelRegular');
         name.setAttribute("font-size", '42px');
-        name.setAttribute("x", 338);
-        name.setAttribute("y", 124);
+        name.setAttribute("x", 359);
+        name.setAttribute("y", 100);
         name.setAttribute("fill", color);
+        name.setAttribute("letter-spacing", 2);
+        name.setAttribute("font-weight", "bold");
         name.innerHTML = "{{ $data->lastname }}, {{ $data->firstname }} {{ $data->middlename }}";
 
         let birthdate = document.createElementNS("http://www.w3.org/2000/svg", "text");
         birthdate.setAttribute("font-family", 'AbelRegular');
         birthdate.setAttribute("font-size", '30px');
-        birthdate.setAttribute("x", 338);
-        birthdate.setAttribute("y", 264);
+        birthdate.setAttribute("x", 359);
+        birthdate.setAttribute("y", 220);
         birthdate.setAttribute("fill", color);
+        birthdate.setAttribute("letter-spacing", 2);
 
         let tmp = "{{ $data->birthdate }}";
         tmp = tmp.split('/');
@@ -362,9 +334,10 @@
         let code = document.createElementNS("http://www.w3.org/2000/svg", "text");
         code.setAttribute("font-family", 'AbelRegular');
         code.setAttribute("font-size", '30px');
-        code.setAttribute("x", 338);
-        code.setAttribute("y", 324);
+        code.setAttribute("x", 359);
+        code.setAttribute("y", 269);
         code.setAttribute("fill", color);
+        code.setAttribute("letter-spacing", 2);
         code.innerHTML = "{{ $data->username }}";
 
         let img = document.getElementById("member-picture-1");
@@ -372,9 +345,10 @@
 
         getDataUri(imgsrc, function(dataUri) {
             $('#member-picture').attr('xlink:href', dataUri);
+            //$('#member-picture').attr('y', 0);
         });
 
-        let svg = $('#member-card-front')[0];
+        
         svg.appendChild(name);
         svg.appendChild(birthdate);
         svg.appendChild(code);
@@ -382,17 +356,25 @@
     }
 
     function fillBackCard() {
+        let svg = $('#member-card-back')[0];
+        svg.style.fontFamily='AbelRegular';
+        
         let classification = "{{ $data->classification_id }}";
-        let color = "rgb(255, 255, 255)";
-        if (classification == 1) {
-            color = "rgb(0, 0, 0)";
-        }
+        // let color = "rgb(255, 255, 255)";
+        // if (classification == 1) {
+        //     color = "rgb(0, 0, 0)";
+        // }
+        let colors = ['#333333', '#CCCCCC', '#CCCCCC'];
+        let color = colors[classification - 1];
+
         let code = document.createElementNS("http://www.w3.org/2000/svg", "text");
         code.setAttribute("font-family", 'AbelRegular');
         code.setAttribute("font-size", '42px');
         code.setAttribute("x", 446);
-        code.setAttribute("y", 100);
+        code.setAttribute("y", 110);
         code.setAttribute("fill", color);
+        code.setAttribute("letter-spacing", 2);
+        code.setAttribute("font-weight", "bold");
         code.innerHTML = "{{ $data->username }}";
 
         let text1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -417,7 +399,7 @@
             $('#member-signature').attr('xlink:href', dataUri);
         });
 
-        let svg = $('#member-card-back')[0];
+        
         svg.appendChild(code);
         svg.appendChild(text1);
         svg.appendChild(text2);

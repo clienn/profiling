@@ -25,8 +25,12 @@ class MemberController extends Controller
 
         if (!$records) $records = 10;
 
-        $members = Member::paginate($records);
+        //$members = Member::paginate($records);
 
+        $members = Member::select('members.*', 'branches.name')->leftJoin('branches', 'branches.id', '=', 'members.branch_id')
+                ->paginate($records);
+        
+        
         // if ($search == '') {
         //     $members = Member::paginate($records);
         // } else {
@@ -159,20 +163,48 @@ class MemberController extends Controller
         if (is_numeric($id)) {
             $member = Member::findOrFail($id);
         } else {
-            $member = Member::where('username', '=', $id)->first();
+            $code = substr($id, 0, 4);
+            if (strlen($id) == 18 && $code == "QRKP") {
+                $member = Member::where('username', '=', $id)->first();
+            } else {
+                $member = Member::where('firstname', 'like', '%' . $id . '%')
+                ->orWhere('lastname', 'like', '%' . $id . '%')
+                ->orWhere('middlename', 'like', '%' . $id . '%')
+                ->first();
+            }
+            
         }
         
         return new MemberResource($member);
     }
 
     public function scan(Request $request) {
+        $id = $request->input('qr_code');
+
+        if (is_numeric($id)) {
+            $member = Member::findOrFail($id);
+        } else {
+            $code = substr($id, 0, 4);
+            if (strlen($id) == 18 && $code == "QRKP") {
+                $member = Member::where('username', '=', $id)->first();
+            } else {
+                $member = Member::where('firstname', 'like', '%' . $id . '%')
+                ->orWhere('lastname', 'like', '%' . $id . '%')
+                ->orWhere('middlename', 'like', '%' . $id . '%')
+                ->first();
+            }
+        }
+
+        $id = $member->username;
+
         $member = Member::where('username', '=', $request->input('id'))->get();
         $member = Member::findOrFail($member[0]->id);
 
-        $member->access_token = $request->input('qr_code');
+        $member->access_token = $id; //$request->input('qr_code');
 
         if ($member->save()) {
-            $member = Member::where('username', '=', $request->input('qr_code'))->get();
+            $member = Member::leftJoin('branches', 'branches.id', '=', 'members.branch_id')
+                ->where('username', '=', $request->input('qr_code'))->get();
             return new MemberResource($member);
         } else {
             return response(['error' => $member]);

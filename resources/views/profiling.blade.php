@@ -28,6 +28,7 @@
     .image-upload > input {
         display: none;
     }
+
 </style>
 
 @section('content-2')
@@ -40,6 +41,7 @@
 <div class="row form-group align-items-center p-4">
     <div class="col-md-12 my-1">
         <h1 class="header-1 font-light fc-1">Create Accounts</h1>
+        
     </div>
     <div class="col-md-10 my-1">
         <input type="text" class="form-control header-8" name="search" placeholder="Enter member QR code">
@@ -126,7 +128,6 @@
                     id="sel3">
                     <option value="" selected disabled>Status</option>
                     <option value="New">New</option>
-                    <option value="Active">Active</option>
                     <option value="Re-Entry">Re-Entry</option>
                 </select>
             </div>
@@ -137,6 +138,10 @@
                         @include('svg.import-signature-icon')
                     </label>
                     <input id="file-input" type="file" onchange="readURL(this);" />
+                    <!-- <div class="btn btn-primary btn-sm float-left">
+                        <span>Choose file</span>
+                        
+                    </div> -->
                 </div>
             </div>
         </div>
@@ -236,6 +241,9 @@
                     class="hidden btn btn-curve mr-2 btn-rounded-3 bgc-1 fc-0 font-light header-8">
                     Update
                 </button>
+                <a id="openPrint" href="#printModal" data-toggle="modal" data-target="#printModal">
+                    <span class="fc-1 font-regular font-weight-bold pr-2 mt-5">View ID</span>
+                </a>
                 <button id="createMember" type="submit" 
                     class="btn btn-curve btn-rounded-3 bgc-1 fc-0 font-light header-8">
                     Create Member
@@ -258,8 +266,86 @@
         </div>
     </div>
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="printModal" tabindex="-1" role="dialog" aria-labelledby="printModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="printModalLabel">Member ID Template</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <canvas id="canvas" width="1011" height="641" class="hidden"></canvas>
+        <div class="flip-card">
+            <div class="flip-card-inner">
+                <div class="flip-card-front" id="card-front">
+                    @include('svg.leader-card-front')
+                    @include('svg.staff-card-front')
+                    @include('svg.member-card-front')
+                </div>
+                <div class="flip-card-back" id="card-back">
+                    @include('svg.leader-card-back')
+                    @include('svg.staff-card-back')
+                    @include('svg.member-card-back')
+                </div>
+            </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="save-img" type="button" class="btn btn-secondary" data-dismiss="modal">Save Image</button>
+        <button id="print-btn" type="button" class="btn btn-primary">Print</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script type="text/javascript">
+    svgeq = 0;
     $(document).ready(function() {
+        var rotation = 0;
+
+        $('#sel1').change(function() {
+            if ($(this).val() == 3) {
+                $('input[name="password"]').attr('disabled', true);
+                $('input[name="password_confirmation"]').attr('disabled', true);
+            } else {
+                $('input[name="password"]').attr('disabled', false);
+                $('input[name="password_confirmation"]').attr('disabled', false);
+            }
+        });
+
+        $('.flip-card').click(function() {
+            rotation = (rotation + 180) % 360
+            svgeq = (svgeq + 1) % 2;
+            $('.flip-card-inner', this).css({
+                transform: 'rotateY(' + rotation + 'deg)'
+            });
+        });
+
+        $('#printModal').on('show.bs.modal', function () {
+            fillFrontCard();
+            fillBackCard();
+        });
+
+        $('#print-btn').click(function() {
+            printDiv();
+        });
+        
+        $('#save-img').click(function() {
+            //saveImage($(".card-id:eq(" + svgeq+ ")")[0]);
+            let classification_id = $('#sel1').val();
+            let classification = classification_id ? classification_id : 1;
+            let username = $('input[name="username"]').val();
+            let cardFront = $('#card-front svg.card-id:eq(' + (classification - 1) + ')');
+            let cardBack = $('#card-back svg.card-id:eq(' + (classification - 1) + ')');
+            
+            saveImage(cardFront[0], username + '-front');
+            saveImage(cardBack[0], username + '-back');
+        });
+
         generateQRCode('');
 
         $('input[name="birthdate"]').datepicker();
@@ -354,7 +440,7 @@
                         'sigbase64': sigbase64
                     });
                     // console.log(member);
-                    if (validateFields()) {
+                    if (validateFields(2)) {
                         apiCall(
                             "{{ env('API_URL', '127.0.0.1:8001') }}/api/member/", 'PUT', 
                             member,
@@ -373,7 +459,7 @@
         $('#createMember').click(function(e) {
             e.preventDefault();
 
-            if (validateFields()) {
+            if (validateFields(1)) {
                 // Get base64 value from <img id='imageprev'> source
                 let img = document.getElementById("imageprev");
                 let sig = document.getElementById("signature");
@@ -413,7 +499,7 @@
                 width: 320,
                 height: 240,
                 image_format: 'jpeg',
-                jpeg_quality: 90
+                jpeg_quality: 100
             });
 
             Webcam.attach('#my_camera');
@@ -477,7 +563,7 @@
         return result;
     }
 
-    function validateFields() {
+    function validateFields(x) {
         let classification_id = $('#sel1').val();
         let branch_id = $('#sel2').val();
         let firstname = $('input[name="firstname"]').val();
@@ -497,10 +583,18 @@
         let imgsrc = img ? img.src : '';
         let sigsrc = sig ? sig.src : '';
 
-        if (password != "") {
-            if (password != password_confirmation) return false;
+        if (x == 2) {
+            if (password != "") {
+                if (password != password_confirmation) return false;
+            }
         }
 
+        if (classification_id < 3) {
+            if (password == "" || password != password_confirmation) {
+                return false;
+            } 
+        }
+        
         return (
             firstname && lastname && middlename && birthdate && classification_id && 
             branch_id && status && address && contact && username && imgsrc && sigsrc 
@@ -510,9 +604,7 @@
     function getUpdateData() {
         apiCall(
             "{{ env('API_URL', '127.0.0.1:8001') }}/api/member/" + $('input[name="search"]').val(), 'GET', 
-            JSON.stringify({
-                id: $('input[name="search"]').val()
-            }),
+            '',
             (data) => {
                 if (data['classification_id']) {
                     $('#sel1 option').each(function() {
@@ -592,6 +684,216 @@
                 $('#qr-generator').attr('disabled', true);
             }
         );
+    }
+
+    function fillFrontCard() {
+        let classification_id = $('#sel1').val();
+        let firstname = $('input[name="firstname"]').val();
+        let lastname = $('input[name="lastname"]').val();
+        let middlename = $('input[name="middlename"]').val();
+        
+        let username = $('input[name="username"]').val();
+
+        let classification = classification_id ? classification_id : 1;
+        let colors = ['#333333', '#CCCCCC', '#CCCCCC'];
+        let color = colors[classification - 1];
+        // let color = "rgb(255, 255, 255)";
+        
+        // if (classification == 1) {
+        //     color = "rgb(0, 0, 0)";
+        // }
+
+        let cardID = $('#card-front svg.card-id:eq(' + (classification - 1) + ')');
+        cardID[0].style.fontFamily='AbelRegular';
+
+
+        $('.rm-card-details', cardID).remove();
+
+        hideSVG(classification - 1);
+        // @font-face {
+        //         font-family: 'AbelRegular';
+        //         src: url('{{asset('css/fonts/Abel-Regular.ttf')}}')  format('truetype'); /* IE9 Compat Modes */
+        //     }
+        let name = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        name.setAttribute("font-family", 'AbelRegular');
+        name.setAttribute("font-size", '42px');
+        name.setAttribute("x", 359);
+        name.setAttribute("y", 100);
+        name.setAttribute("fill", color);
+        name.setAttribute("class", 'rm-card-details');
+        name.setAttribute("letter-spacing", 2);
+        name.setAttribute("font-weight", "bold");
+        name.innerHTML = lastname + ', ' + firstname + ' ' + middlename;
+
+        let birthdate = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        birthdate.setAttribute("font-family", 'AbelRegular');
+        birthdate.setAttribute("font-size", '30px');
+        birthdate.setAttribute("x", 359);
+        birthdate.setAttribute("y", 220);
+        birthdate.setAttribute("fill", color);
+        birthdate.setAttribute("class", 'rm-card-details');
+        birthdate.setAttribute("letter-spacing", 2);
+
+        let tmp = $('input[name="birthdate"]').val();
+        tmp = tmp.split('/');
+        let str = '';
+        for (var i in tmp) {
+            if (str != '') str += ' / ';
+            str += tmp[i];
+        }
+
+        birthdate.innerHTML = str;
+
+        let code = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        code.setAttribute("font-family", 'AbelRegular');
+        code.setAttribute("font-size", '30px');
+        code.setAttribute("x", 359);
+        code.setAttribute("y", 269);
+        code.setAttribute("fill", color);
+        code.setAttribute("class", 'rm-card-details');
+        code.setAttribute("letter-spacing", 2);
+        code.innerHTML = username;
+
+        let img = document.getElementById("imageprev");
+        let imgsrc = img ? img.src : '';
+
+        getDataUri(imgsrc, function(dataUri) {
+            $('#member-picture', cardID).attr('xlink:href', dataUri);
+            // $('#member-picture', cardID).css({
+            //     width: '350px',
+            //     height: '325px',
+            // });
+        });
+
+        let svg = cardID[0]; //$('#member-card-front')[0];
+        svg.appendChild(name);
+        svg.appendChild(birthdate);
+        svg.appendChild(code);
+        
+    }
+
+    function fillBackCard() {
+        let classification_id = $('#sel1').val();
+        let username = $('input[name="username"]').val();
+
+        let classification = classification_id ? classification_id : 1;
+        let colors = ['#333333', '#CCCCCC', '#CCCCCC'];
+        let color = colors[classification - 1];
+        // let color = "rgb(255, 255, 255)";
+        // if (classification == 1) {
+        //     color = "rgb(0, 0, 0)";
+        // }
+
+        let cardID = $('#card-back svg.card-id:eq(' + (classification - 1) + ')');
+        $('.rm-card-details', cardID).remove();
+
+        cardID[0].style.fontFamily='AbelRegular';
+        
+        let code = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        code.setAttribute("font-family", 'AbelRegular');
+        code.setAttribute("font-size", '42px');
+        code.setAttribute("x", 446);
+        code.setAttribute("y", 110);
+        code.setAttribute("fill", color);
+        code.setAttribute("class", 'rm-card-details');
+        code.setAttribute("letter-spacing", 2);
+        code.setAttribute("font-weight", "bold");
+        code.innerHTML = username;
+
+        let text1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text1.setAttribute("font-family", 'AbelRegular');
+        text1.setAttribute("font-size", '30px');
+        text1.setAttribute("x", 450);
+        text1.setAttribute("y", 150);
+        text1.setAttribute("fill", color);
+        text1.setAttribute("class", 'rm-card-details');
+        text1.innerHTML = "Member account number.";
+
+        let text2 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text2.setAttribute("font-family", 'AbelRegular');
+        text2.setAttribute("font-size", '30px');
+        text2.setAttribute("x", 450);
+        text2.setAttribute("y", 180);
+        text2.setAttribute("fill", color);
+        text2.setAttribute("class", 'rm-card-details');
+        text2.innerHTML = "Scan QR code to get member details.";
+
+        let sigsrc = $('#qrcode img').attr('src');
+
+        getDataUri(sigsrc, function(dataUri) {
+            $('#member-signature', cardID).attr('xlink:href', dataUri);
+            // $('#member-signature').attr('xlink:href', dataUri);
+        });
+
+        let svg = cardID[0];
+        svg.appendChild(code);
+        svg.appendChild(text1);
+        svg.appendChild(text2);
+    }
+
+    function hideSVG(n) {
+        $('#card-front svg.card-id').each(function(i) {
+            if (i == n) {
+                $(this).css('display', 'block');
+            } else {
+                $(this).css('display', 'none');
+            }
+        });
+
+        $('#card-back svg.card-id').each(function(i) {
+            if (i == n) {
+                $(this).css('display', 'block');
+            } else {
+                $(this).css('display', 'none');
+            }
+        });
+    }
+
+    function printDiv() 
+    {
+
+        var divToPrint=document.getElementById(svgeq ? 'card-back' : 'card-front');
+        // var style = '<style>@media print and (width: 8.56cm) and (height: 5.4cm) { @page {margin: 0; } }</style>';
+        var style = '<style>' + g_fontAbel;
+        
+        style += '@media print{@page { size: 3.37in 2.127in;margin:0;} .card-id{height:206px;width:328px;margin-left:-2px;} html, body {height:100%; margin: 0 !important; padding: 0 !important;overflow: hidden;}';
+        style += 'header, footer, aside, nav, form, iframe, .menu, .hero, .adslot { display: none; }}';
+        style += '</style>';
+
+        console.log(style);
+        var newWin=window.open('','Print-Window');
+
+        newWin.document.open();
+
+        newWin.document.write('<html><head>' + style + '</head><body onload="window.print()">'+divToPrint.innerHTML+'</body></html>');
+
+        newWin.document.close();
+
+        setTimeout(function(){newWin.close();},10);
+
+    }
+
+    function saveImage(el, fn) {
+        var svgString = new XMLSerializer().serializeToString(el);
+
+        var canvas = document.getElementById("canvas");
+        var ctx = canvas.getContext("2d");
+        var DOMURL = self.URL || self.webkitURL || self;
+        var img = new Image();
+        var svg = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"});
+        var url = DOMURL.createObjectURL(svg);
+
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0);
+            var png = canvas.toDataURL("image/png");
+            var a  = document.createElement('a');
+            a.href = png;
+            a.download = fn + '.png';
+
+            a.click()
+        };
+        
+        img.src = url;
     }
 </script>
 @endsection

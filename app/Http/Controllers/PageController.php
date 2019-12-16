@@ -28,13 +28,21 @@ class PageController extends Controller
             $member = Member::where('username', $username)->first();
         }
 
-        if ($member == null) $member = [];
+        $branch_name = '';
+
+        if ($member == null) {
+            $member = [];
+        } else {
+            $branch = Branch::where('id', $member->branch_id)->first();
+            $branch_name = $branch->name;
+        }
         
-        return view('dashboard', ['data' => $member]);
+        return view('dashboard', ['data' => $member, 'branch_name' => $branch_name]);
     }
 
     public function login() {
         $ldate = date('F d, Y l');
+        
         return view('index', ['ldate' => $ldate]);
     }
 
@@ -69,13 +77,16 @@ class PageController extends Controller
         // $members = Member::paginate($records);
 
         if ($search == '') {
-            $members = Member::paginate($records);
+            $members = Member::select('members.*', 'branches.name')->leftJoin('branches', 'branches.id', '=', 'members.branch_id')
+                ->paginate($records);
         } else {
-            $members = Member::where('firstname', 'like', '%' . $search . '%')
-                ->orWhere('lastname', 'like', '%' . $search . '%')
-                ->orWhere('middlename', 'like', '%' . $search . '%')
-                ->orWhere('address', 'like', '%' . $search . '%')
-                ->orWhere('username', '=', $search)
+            $members = Member::select('members.*', 'branches.name')
+                ->leftJoin('branches', 'branches.id', '=', 'members.branch_id')
+                ->where('members.firstname', 'like', '%' . $search . '%')
+                ->orWhere('members.lastname', 'like', '%' . $search . '%')
+                ->orWhere('members.middlename', 'like', '%' . $search . '%')
+                ->orWhere('members.address', 'like', '%' . $search . '%')
+                ->orWhere('members.username', '=', $search)
                 ->paginate($records);
         }
 
@@ -108,6 +119,11 @@ class PageController extends Controller
     }
 
     public function branches(Request $request) {
+        $user = auth()->user();
+        if ($user->classification_id > 1) {
+            return back();
+        }
+
         $records = $request->query('records');
         $search = $request->query('search');
 
@@ -147,6 +163,11 @@ class PageController extends Controller
     }
 
     public function profiling() {
+        $user = auth()->user();
+        if ($user->classification_id > 1) {
+            return back();
+        }
+
         $classifications = Classification::select('id', 'name')
             ->get()->toArray();
             //->where('id', '!=', 1)->get()->toArray();
